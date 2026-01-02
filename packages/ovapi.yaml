@@ -1,0 +1,70 @@
+rest:
+  - resource: "http://v0.ovapi.nl/tpc/30005031,30005065"
+    # Voor het vinden van de tpc's(Timing Point Code) gebruik:
+    #  https://ovzoeker.nl/
+    # Meerdere tpc's toegestaan maar HA heeft wel een mag aan de hoeveelheid
+    # data wat een attribuut aankan.
+    scan_interval: 60
+    sensor:
+      - name: "OVAPI Feed 30005031"
+        unique_id: ovapi_feed_30005031
+        json_attributes_path: $['30005031']
+        json_attributes:
+            - Stop
+            - GeneralMessages
+            - Passes
+        value_template: >-
+            {{ value_json['30005031'].Stop.TimingPointName }}
+      - name: "OVAPI Feed 30005065"
+        unique_id: ovapi_feed_30005065
+        json_attributes_path: $['30005065']
+        json_attributes:
+            - Stop
+            - GeneralMessages
+            - Passes
+        value_template: >-
+            {{ value_json['30005065'].Stop.TimingPointName }}
+
+template:
+  # Helper om de data van de REST feed te sorteren en filteren
+  # *source_sensor* MOET de entity id zijn van de rest feed die je wilt gebruiken.
+  # _Waarschijnlijk_ is het de name die hierboven is gebruikt bij de helper.
+  - use_blueprint:
+      path: ovapi/data.yaml
+      input:
+        TimingPointCode: '30005031'
+        source_sensor: 'sensor.ovapi_feed_30005031'
+        # optioneel filteren op lijnen
+        lijnen:
+          - "14"
+          - "4"
+    name: "OVAPI helper sensor 30005031"
+    unique_id: ovapi_data_30005031
+  - use_blueprint:
+      path: ovapi/data.yaml
+      input:
+        TimingPointCode: '30005065'
+        source_sensor: 'sensor.ovapi_feed_30005065'
+    name: "OVAPI helper sensor 30005065"
+    unique_id: ovapi_data_30005065
+    
+  # Blueprint template voor het weergeven van de volgende bus/tram/etc.
+  # gebruikt de data van de helper
+  # *source_sensor* MOET de entity id zijn van de OVAPI helper sensor hierboven.
+  # Vaak is dat een afgeleide van de naam maar soms maakt HA er zelf iets van.
+  # Controleer dit eerst als de onderstaande sensor niet werkt.
+  - use_blueprint:
+      path: ovapi/vertrek.yaml
+      input:
+        source_sensor: 'sensor.ovapi_helper_sensor_30005031'
+    name: "OVAPI vertrek Dam"
+    unique_id: ovapi_vertrek_30005031
+  
+  - use_blueprint:
+      path: ovapi/vertrek.yaml
+      input:
+        source_sensor: 'sensor.ovapi_helper_sensor_30005065'
+    name: "OVAPI vertrek Dam"
+    unique_id: ovapi_vertrek_30005065
+
+

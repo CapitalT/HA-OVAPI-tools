@@ -1,0 +1,122 @@
+# Verwijder dit blok in de card editor nadat de
+# card een keer is opgeslagen. De YAML-anchors
+# worden dan in de yaml gezet.
+dris_style: &dris_style
+  color: '#ECEBB5'
+  font-family: monospace
+  line-height: 1em
+  letter-spacing: 0.1em
+  # outline: 1px solid red # Om layout te testen
+  font-size: clamp(10px, 0.8vw, 22px)
+
+keep_right: &keep_right
+  transform: translateX(-100%)
+
+keep_left: &keep_left
+  transform: translateX(0%)
+  width: 62%
+  white-space: nowrap
+  overflow: hidden
+#
+# Einde blok
+
+
+
+type: picture-elements
+elements:
+  - entity: sensor.ovapi_vertrek_dam
+    attribute: lijn_1
+    type: state-label
+    style:
+      <<: *dris_style
+      <<: *keep_right
+      left: 14%
+      top: 36%
+
+  - entity: sensor.ovapi_vertrek_dam
+    attribute: lijn_2
+    type: state-label
+    style:
+      <<: *dris_style
+      <<: *keep_right
+      left: 14%
+      top: 53%
+
+  - entity: sensor.ovapi_vertrek_dam
+    attribute: lijn_3
+    type: state-label
+    style:
+      <<: *dris_style
+      <<: *keep_right
+      left: 14%
+      top: 70%
+
+  - entity: sensor.ovapi_vertrek_dam
+    attribute: bestemming_1
+    type: state-label
+    style:
+      <<: *dris_style
+      <<: *keep_left
+      left: 16%
+      top: 36%
+
+  - entity: sensor.ovapi_vertrek_dam
+    attribute: bestemming_2
+    type: state-label
+    style:
+      <<: *dris_style
+      <<: *keep_left
+      left: 16%
+      top: 53%
+
+  - entity: sensor.ovapi_vertrek_dam
+    attribute: bestemming_3
+    type: state-label
+    style:
+      <<: *dris_style
+      <<: *keep_left
+      left: 16%
+      top: 70%
+
+  - entity: sensor.ovapi_vertrek_dam
+    attribute: minuten_1
+    type: state-label
+    style:
+      <<: *dris_style
+      <<: *keep_right
+      left: 96%
+      top: 36%
+    suffix: " min"
+
+  - entity: sensor.ovapi_vertrek_dam
+    attribute: minuten_2
+    type: state-label
+    style:
+      <<: *dris_style
+      <<: *keep_right
+      left: 96%
+      top: 53%
+    suffix: " min"
+
+  - entity: sensor.ovapi_vertrek_dam
+    attribute: minuten_3
+    type: state-label
+    style:
+      <<: *dris_style
+      <<: *keep_right
+      left: 96%
+      top: 70%
+    suffix: " min"
+
+image:
+  media_content_id: media-source://image_upload/a335a493f3b99613e2debd9612868a2e
+  media_content_type: image/png
+  metadata:
+    title: DRIS_met_tekst.png
+    thumbnail: /api/image/serve/6a5fdea9e0ffe5d5aec3c5e801054725/256x256
+    media_class: image
+    navigateIds:
+      - {}
+      - media_content_type: app
+        media_content_id: media-source://image_upload
+

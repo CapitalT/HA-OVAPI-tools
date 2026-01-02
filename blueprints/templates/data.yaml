@@ -1,0 +1,67 @@
+blueprint:
+  name: OVAPI – Helper (template sensor)
+  description: >
+    Template sensor die de volgende OV-ritten sorteert op basis van
+    een OVAPI REST sensor met een Passes-attribuut.
+  domain: template
+  homeassistant:
+    min_version: 2025.12.1
+
+  input:
+    source_sensor:
+      name: OVAPI REST sensor
+      description: >
+        REST Sensor die een Passes-attribuut bevat
+      selector:
+        entity:
+          domain: sensor
+    TimingPointCode:
+      name: Timing Point Code
+      description: >
+        Een tpc is een locatie en kan bijv. een bushalte zijn. 
+        Bushaltes aan weerszijde van de straat hebben een eigen tpc.
+        Voor het vinden van de tpc's(Timing Point Code) gebruik:
+        https://ovzoeker.nl/
+      selector:
+        text:
+    lijnen:
+      name: Lijnen
+      description: Lijst met lijnnummer(s) of leeg laten om alle lijnen te tonen.
+      default:
+      selector:
+        text:
+          multiple: true
+
+
+variables:
+    source: !input source_sensor
+    tpc: !input TimingPointCode
+    lijnen: !input lijnen
+  
+trigger:
+  - platform: time_pattern
+    minutes: "/1"
+  - platform: state
+    entity_id: !input source_sensor
+
+sensor:
+    state: >-
+      {{ tpc }}
+    attributes:
+      lijnen: >-
+        {{ lijnen }}
+      data: >-
+        {% set passes = state_attr(source, 'Passes') or {}  %}
+        {% set data = passes  | dictsort | map(attribute=1) %}
+        
+        {% set result = (data | selectattr('LinePublicNumber', 'in', lijnen)) if lijnen 
+          else data %}
+
+        {{ result
+          | selectattr('ExpectedDepartureTime', 'defined')
+          | selectattr('ExpectedDepartureTime', '>=', now().isoformat() )
+          | sort(attribute='ExpectedDepartureTime')
+          | list if passes else []
+        }}
+      icon: >-
+        mdi:database
