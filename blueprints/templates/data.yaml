@@ -15,15 +15,7 @@ blueprint:
       selector:
         entity:
           domain: sensor
-    TimingPointCode:
-      name: Timing Point Code
-      description: >
-        Een tpc is een locatie en kan bijv. een bushalte zijn. 
-        Bushaltes aan weerszijde van de straat hebben een eigen tpc.
-        Voor het vinden van de tpc's(Timing Point Code) gebruik:
-        https://ovzoeker.nl/
-      selector:
-        text:
+          multiple: true
     lijnen:
       name: Lijnen
       description: Lijst met lijnnummer(s) of leeg laten om alle lijnen te tonen.
@@ -34,8 +26,7 @@ blueprint:
 
 
 variables:
-    source: !input source_sensor
-    tpc: !input TimingPointCode
+    source_sensors: !input source_sensor
     lijnen: !input lijnen
   
 trigger:
@@ -45,14 +36,19 @@ trigger:
     entity_id: !input source_sensor
 
 sensor:
-    state: >-
-      {{ tpc }}
+    state: OK
     attributes:
       lijnen: >-
         {{ lijnen }}
       data: >-
-        {% set passes = state_attr(source, 'Passes') or {}  %}
-        {% set data = passes  | dictsort | map(attribute=1) %}
+        {% set ns = namespace(passes={}) %}
+
+        {% for source in source_sensors %}
+          {% set p = state_attr(source, 'Passes') or {} %}
+          {% set ns.passes = ns.passes | combine(p) %}
+        {% endfor %}
+        
+        {% set data = ns.passes  | dictsort | map(attribute=1) %}
         
         {% set result = (data | selectattr('LinePublicNumber', 'in', lijnen)) if lijnen 
           else data %}
@@ -61,7 +57,7 @@ sensor:
           | selectattr('ExpectedDepartureTime', 'defined')
           | selectattr('ExpectedDepartureTime', '>=', now().isoformat() )
           | sort(attribute='ExpectedDepartureTime')
-          | list if passes else []
+          | list if ns.passes else []
         }}
       icon: >-
         mdi:database
