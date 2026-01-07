@@ -1,0 +1,181 @@
+blueprint:
+  name: OVAPI – Departure times(template sensor)
+  description: >
+    Template sensor showing the next public transport options based on the
+    OVAPI helper sensor.
+  domain: template
+  homeassistant:
+    min_version: 2025.12.1
+
+  input:
+    source_sensor:
+      name: OVAPI DATA sensor
+      description: >
+        Sensor containging `data` attribute
+      selector:
+        entity:
+          domain: sensor
+
+variables:
+    source: !input source_sensor
+
+trigger:
+  - platform: time_pattern
+    seconds: "/10"
+  - platform: state
+    entity_id: !input source_sensor
+
+sensor:
+    state: >-
+      {% set next = state_attr(source, 'data') | default([]) %}
+      {% if not next %}
+        Geen vertrektijden beschikbaar
+      {% else %}
+        {% set vertraging =
+          ( as_local(as_datetime(next[0].ExpectedArrivalTime))
+          - as_local(as_datetime(next[0].TargetArrivalTime))
+          ).total_seconds() // 60
+        %}
+        {% if next[0].TripStopStatus.startswith('CANCEL') %} - min · {{ next[0].LinePublicNumber }} Rit {{ as_datetime(next[0].TargetDepartureTime).strftime('%H:%M') if next|length > 0 }} vervalt
+        {% else %}
+          {{ ((as_local(as_datetime(next[0].ExpectedDepartureTime)) - now()).total_seconds() // 60) | int }} min · {{ next[0].LinePublicNumber }} {{ next[0].DestinationName50 }}
+          {% if vertraging > 0 %}
+            (+{{ vertraging | int }})
+          {% elif vertraging < 0 %}
+            ({{ vertraging | int }})
+          {% endif %}
+        {% endif %}
+      {% endif %}
+
+    icon: >-
+      {% set next = state_attr(source, 'data') | default([]) %}
+      {% set t = next[0].TransportType if next else 'Unknown' %}
+      {% if t == 'BUS' %}
+        mdi:bus
+      {% elif t == 'TRAM' %}
+        mdi:tram
+      {% elif t == 'METRO' %}
+        mdi:subway
+      {% elif t == 'TRAIN' %}
+        mdi:train
+      {% elif t == 'BOAT' %}
+        mdi:ferry
+      {% else %}
+        mdi:help
+      {% endif %}
+    attributes:
+      vertrektijd_1: >-
+        {% set next = state_attr(source, 'data') | default([]) %}
+        {{ as_datetime(next[0].ExpectedDepartureTime).strftime('%H:%M') if next|length > 0 }}
+      vertrektijd_2: >-
+        {% set next = state_attr(source, 'data') | default([]) %}
+        {{ as_datetime(next[1].ExpectedDepartureTime).strftime('%H:%M') if next|length > 1 }}
+      vertrektijd_3: >-
+        {% set next = state_attr(source, 'data') | default([]) %}
+        {{ as_datetime(next[2].ExpectedDepartureTime).strftime('%H:%M') if next|length > 2 }}
+
+      planning_1: >-
+        {% set next = state_attr(source, 'data') | default([]) %}
+        {{ as_datetime(next[0].TargetDepartureTime).strftime('%H:%M') if next|length > 0 }}
+      planning_2: >-
+        {% set next = state_attr(source, 'data') | default([]) %}
+        {{ as_datetime(next[1].TargetDepartureTime).strftime('%H:%M') if next|length > 1 }}
+      planning_3: >-
+        {% set next = state_attr(source, 'data') | default([]) %}
+        {{ as_datetime(next[2].TargetDepartureTime).strftime('%H:%M') if next|length > 2 }}
+
+      vertraging_1: >-
+        {% set next = state_attr(source, 'data') | default([]) %}
+        {{  ( 
+              as_local(as_datetime(next[0].ExpectedArrivalTime)) - as_local(as_datetime(next[0].TargetArrivalTime)) 
+            ).total_seconds() // 60  if next|length > 0
+        }}
+      vertraging_2: >-
+        {% set next = state_attr(source, 'data') | default([]) %}
+        {{  ( 
+              as_local(as_datetime(next[1].ExpectedArrivalTime)) - as_local(as_datetime(next[1].TargetArrivalTime)) 
+            ).total_seconds() // 60  if next|length > 1
+        }}
+      vertraging_3: >-
+        {% set next = state_attr(source, 'data') | default([]) %}
+        {{  ( 
+              as_local(as_datetime(next[2].ExpectedArrivalTime)) - as_local(as_datetime(next[2].TargetArrivalTime)) 
+            ).total_seconds() // 60 if next|length > 2
+        }}
+
+      minuten_1: >-
+        {% set next = state_attr(source, 'data') | default([]) %}
+        {% if next[0].TripStopStatus.startswith('CANCEL') %}
+          --
+        {% elif next[0].TripStopStatus.startswith('PASSED')%}
+          
+        {% else %}
+          {{ ((as_local(as_datetime(next[0].ExpectedDepartureTime)) - now()).total_seconds() // 60) | int  if next|length > 0 }} min
+        {% endif%}
+      minuten_2: >-
+        {% set next = state_attr(source, 'data') | default([]) %}
+        {% if next[1].TripStopStatus.startswith('CANCEL') %}
+          --
+        {% elif next[1].TripStopStatus.startswith('PASSED')%}
+          
+        {% else %}
+          {{ ((as_local(as_datetime(next[1].ExpectedDepartureTime)) - now()).total_seconds() // 60) | int  if next|length > 0 }} min
+        {% endif%}
+      minuten_3: >-
+        {% set next = state_attr(source, 'data') | default([]) %}
+        {% if next[2].TripStopStatus.startswith('CANCEL') %}
+          --
+        {% elif next[2].TripStopStatus.startswith('PASSED')%}
+          
+        {% else %}
+          {{ ((as_local(as_datetime(next[2].ExpectedDepartureTime)) - now()).total_seconds() // 60 )|int if next|length > 0 }} min
+        {% endif%}
+
+      lijn_1: >-
+        {% set next = state_attr(source, 'data') | default([]) %}
+        {% if next[0].TripStopStatus.startswith('PASSED')%}
+        {% else %}
+        {{ next[0].LinePublicNumber if next|length > 0 }}
+        {% endif%}
+      lijn_2: >-
+        {% set next = state_attr(source, 'data') | default([]) %}
+        {{ next[1].LinePublicNumber if next|length > 1 }}
+      lijn_3: >-
+        {% set next = state_attr(source, 'data') | default([]) %}
+        {{ next[2].LinePublicNumber if next|length > 2 }}
+
+      bestemming_1: >-
+        {% set next = state_attr(source, 'data') | default([]) %}
+        {% if next[0].TripStopStatus.startswith('CANCEL') %}
+          Rit {{ as_datetime(next[0].TargetDepartureTime).strftime('%H:%M') }} vervalt
+        {% elif next[0].TripStopStatus.startswith('PASSED')%}
+        {% else %}
+          {{ next[0].DestinationName50 if next|length > 0 else '—'}}
+        {% endif %}
+      bestemming_2: >-
+        {% set next = state_attr(source, 'data') | default([]) %}
+        {% if next[1].TripStopStatus.startswith('CANCEL') %}
+          Rit {{ as_datetime(next[1].TargetDepartureTime).strftime('%H:%M') }} vervalt
+        {% elif next[1].TripStopStatus.startswith('PASSED')%}
+        {% else %}
+          {{ next[1].DestinationName50 if next|length > 1 else '—'}}
+        {% endif %}
+      bestemming_3: >-
+        {% set next = state_attr(source, 'data') | default([]) %}
+        {% if next[2].TripStopStatus.startswith('CANCEL') %}
+          Rit {{ as_datetime(next[2].TargetDepartureTime).strftime('%H:%M') }} vervalt
+        {% elif next[2].TripStopStatus.startswith('PASSED')%}
+        {% else %}
+          {{ next[2].DestinationName50 if next|length > 2 else '—'}}
+        {% endif %}
+
+      status_1: >-
+        {% set next = state_attr(source, 'data') | default([]) %}
+        {{ next[0].TripStopStatus if next|length > 0 }}
+      status_2: >-
+        {% set next = state_attr(source, 'data') | default([]) %}
+        {{ next[1].TripStopStatus if next|length > 1 }}
+      status_3: >-
+        {% set next = state_attr(source, 'data') | default([]) %}
+        {{ next[2].TripStopStatus if next|length > 2 }}
+

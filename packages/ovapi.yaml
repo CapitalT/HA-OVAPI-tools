@@ -1,7 +1,9 @@
 rest:
-  - resource: "http://v0.ovapi.nl/tpc/30005031,30005032,30005065"
+  - resource: "http://v0.ovapi.nl/tpc/30005031,30005032,30005065/departures"
+    # Zonder '/departures' worden ook aankomende ritten weergegeven die niet 
+    # meer vertrekken.
     # Voor het vinden van de tpc's(Timing Point Code) gebruik:
-    #  https://ovzoeker.nl/
+    #  https://william-sy.github.io/ovapi-tpc-finder/site/
     # Meerdere tpc's toegestaan maar HA heeft wel een mag aan de hoeveelheid
     # data wat een attribuut aan kan.
     scan_interval: 60
@@ -36,6 +38,9 @@ rest:
         value_template: >-
             {{ value_json['30005065'].Stop.TimingPointName }}
 
+
+  # Een andere manier is om de API endpoint voor de stop area code te gebruiken. 
+  # Niet elke halte heeft deze code. Hierna moet alsnog een sensor per tpc worden aangemaakt.
   - resource: "http://v0.ovapi.nl/stopareacode/09500/departures"
     scan_interval: 60
     sensor:
@@ -112,14 +117,14 @@ template:
     name: "OVAPI vertrek Damrak"
     unique_id: ovapi_vertrek_30005031
   - use_blueprint:
-      path: ovapi/vertrek.yaml
+      path: ovapi/departures.yaml
       input:
         source_sensor: 'sensor.ovapi_helper_sensor_30005032'
     name: "OVAPI vertrek Damrak"
     unique_id: ovapi_vertrek_30005032
   
   - use_blueprint:
-      path: ovapi/vertrek.yaml
+      path: ovapi/departures.yaml
       input:
         source_sensor: 'sensor.ovapi_helper_sensor_30005065'
     name: "OVAPI vertrek Nieuwezijdsvoorburgwal"
@@ -127,7 +132,7 @@ template:
 
 
   - use_blueprint:
-      path: ovapi/vertrek.yaml
+      path: ovapi/departures.yaml
       input:
         source_sensor: 'sensor.ovapi_helper_sensor_30009500'
     name: "OVAPI vertrek 30009500"

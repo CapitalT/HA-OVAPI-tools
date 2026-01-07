@@ -1,12 +1,12 @@
-# Verwijder dit blok in de card editor nadat de
-# card een keer is opgeslagen. De YAML-anchors
-# worden dan in de yaml gezet.
+# Saving this YAML in the Home Assistant UI card editor will convert the yaml anchors to yaml. After re-opening this block can be removed to enable the GUI card editor.
+entity: &entity
+  entity: sensor.ovapi_vertrek_dam
 dris_style: &dris_style
   color: '#ECEBB5'
   font-family: monospace
   line-height: 1em
   letter-spacing: 0.1em
-  # outline: 1px solid red # Om layout te testen
+#  outline: 1px solid red # Om layout te testen
   font-size: clamp(10px, 0.8vw, 22px)
 
 keep_right: &keep_right
@@ -17,15 +17,19 @@ keep_left: &keep_left
   width: 62%
   white-space: nowrap
   overflow: hidden
+
+help:
+  - "First save this full code in the Home Assistant yaml editor"
+  - "reopen it"
+  - "Remove this line and above"
 #
-# Einde blok
-
-
+# End of block to remove.
 
 type: picture-elements
+image: https://raw.githubusercontent.com/CapitalT/HA-OVAPI-tools/refs/heads/main/images/DRIS_met_tekst.svg
 elements:
-  - entity: sensor.ovapi_vertrek_dam
-    attribute: lijn_1
+  - attribute: lijn_1
+    <<: *entity
     type: state-label
     style:
       <<: *dris_style
@@ -33,8 +37,8 @@ elements:
       left: 14%
       top: 36%
 
-  - entity: sensor.ovapi_vertrek_dam
-    attribute: lijn_2
+  - attribute: lijn_2
+    <<: *entity
     type: state-label
     style:
       <<: *dris_style
@@ -42,8 +46,8 @@ elements:
       left: 14%
       top: 53%
 
-  - entity: sensor.ovapi_vertrek_dam
-    attribute: lijn_3
+  - attribute: lijn_3
+    <<: *entity
     type: state-label
     style:
       <<: *dris_style
@@ -51,8 +55,8 @@ elements:
       left: 14%
       top: 70%
 
-  - entity: sensor.ovapi_vertrek_dam
-    attribute: bestemming_1
+  - attribute: bestemming_1
+    <<: *entity
     type: state-label
     style:
       <<: *dris_style
@@ -60,8 +64,8 @@ elements:
       left: 16%
       top: 36%
 
-  - entity: sensor.ovapi_vertrek_dam
-    attribute: bestemming_2
+  - attribute: bestemming_2
+    <<: *entity
     type: state-label
     style:
       <<: *dris_style
@@ -69,8 +73,8 @@ elements:
       left: 16%
       top: 53%
 
-  - entity: sensor.ovapi_vertrek_dam
-    attribute: bestemming_3
+  - attribute: bestemming_3
+    <<: *entity
     type: state-label
     style:
       <<: *dris_style
@@ -78,45 +82,34 @@ elements:
       left: 16%
       top: 70%
 
-  - entity: sensor.ovapi_vertrek_dam
-    attribute: minuten_1
+  - attribute: minuten_1
+    <<: *entity
     type: state-label
     style:
       <<: *dris_style
       <<: *keep_right
       left: 96%
       top: 36%
-    suffix: " min"
+#    suffix: " min"
 
-  - entity: sensor.ovapi_vertrek_dam
-    attribute: minuten_2
+  - attribute: minuten_2
+    <<: *entity
     type: state-label
     style:
       <<: *dris_style
       <<: *keep_right
       left: 96%
       top: 53%
-    suffix: " min"
+#    suffix: " min"
 
-  - entity: sensor.ovapi_vertrek_dam
-    attribute: minuten_3
+  - attribute: minuten_3
+    <<: *entity
     type: state-label
     style:
       <<: *dris_style
       <<: *keep_right
       left: 96%
       top: 70%
-    suffix: " min"
+#    suffix: " min"
 
-image:
-  media_content_id: media-source://image_upload/a335a493f3b99613e2debd9612868a2e
-  media_content_type: image/png
-  metadata:
-    title: DRIS_met_tekst.png
-    thumbnail: /api/image/serve/6a5fdea9e0ffe5d5aec3c5e801054725/256x256
-    media_class: image
-    navigateIds:
-      - {}
-      - media_content_type: app
-        media_content_id: media-source://image_upload
 
