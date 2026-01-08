@@ -66,14 +66,22 @@ sensor:
     attributes:
       vertrektijd_1: >-
         {% set next = state_attr(source, 'data') | default([]) %}
+        {% if next[0].TripStopStatus.startswith('PASSED')%}
+        {% else %}
         {{ as_datetime(next[0].ExpectedDepartureTime).strftime('%H:%M') if next|length > 0 }}
+        {% endif %}
       vertrektijd_2: >-
         {% set next = state_attr(source, 'data') | default([]) %}
+        {% if next[0].TripStopStatus.startswith('PASSED')%}
+        {% else %}
         {{ as_datetime(next[1].ExpectedDepartureTime).strftime('%H:%M') if next|length > 1 }}
+        {% endif %}
       vertrektijd_3: >-
         {% set next = state_attr(source, 'data') | default([]) %}
+        {% if next[0].TripStopStatus.startswith('PASSED')%}
+        {% else %}
         {{ as_datetime(next[2].ExpectedDepartureTime).strftime('%H:%M') if next|length > 2 }}
-
+        {% endif %}
       planning_1: >-
         {% set next = state_attr(source, 'data') | default([]) %}
         {{ as_datetime(next[0].TargetDepartureTime).strftime('%H:%M') if next|length > 0 }}
@@ -105,48 +113,61 @@ sensor:
 
       minuten_1: >-
         {% set next = state_attr(source, 'data') | default([]) %}
-        {% if next[0].TripStopStatus.startswith('CANCEL') %}
-          --
+        {% if next | length == 0 %}
+        {% elif next[0].TripStopStatus.startswith('CANCEL') %}
+          {{ "--   ." }}
         {% elif next[0].TripStopStatus.startswith('PASSED')%}
-          
-        {% else %}
-          {{ ((as_local(as_datetime(next[0].ExpectedDepartureTime)) - now()).total_seconds() // 60) | int  if next|length > 0 }} min
+        {% elif ((as_local(as_datetime(next[0].ExpectedDepartureTime)) - now()).total_seconds()) < 50 %}
+          {{ "--   ." }} min
+        {% else %}{{ ((as_local(as_datetime(next[0].ExpectedDepartureTime)) - now()).total_seconds() // 60) | int  if next|length > 0 }} min
         {% endif%}
       minuten_2: >-
         {% set next = state_attr(source, 'data') | default([]) %}
-        {% if next[1].TripStopStatus.startswith('CANCEL') %}
-          --
+        {% if next | length < 2 %}
+        {% elif next[1].TripStopStatus.startswith('CANCEL') %}
+          {{ "--   ." }}
         {% elif next[1].TripStopStatus.startswith('PASSED')%}
-          
+        {% elif ((as_local(as_datetime(next[0].ExpectedDepartureTime)) - now()).total_seconds()) < 50 %}
+          {{ "--   ." }} min
         {% else %}
           {{ ((as_local(as_datetime(next[1].ExpectedDepartureTime)) - now()).total_seconds() // 60) | int  if next|length > 0 }} min
         {% endif%}
       minuten_3: >-
         {% set next = state_attr(source, 'data') | default([]) %}
-        {% if next[2].TripStopStatus.startswith('CANCEL') %}
-          --
+        {% if next | length < 3 %}
+        {% elif next[2].TripStopStatus.startswith('CANCEL') %}
+          {{ "--   ." }}
         {% elif next[2].TripStopStatus.startswith('PASSED')%}
-          
         {% else %}
           {{ ((as_local(as_datetime(next[2].ExpectedDepartureTime)) - now()).total_seconds() // 60 )|int if next|length > 0 }} min
         {% endif%}
 
       lijn_1: >-
         {% set next = state_attr(source, 'data') | default([]) %}
-        {% if next[0].TripStopStatus.startswith('PASSED')%}
+        {% if next | length < 1 %}
+        {% elif next[0].TripStopStatus.startswith('PASSED')%}
         {% else %}
-        {{ next[0].LinePublicNumber if next|length > 0 }}
+        {{ next[0].LinePublicNumber}}
         {% endif%}
       lijn_2: >-
         {% set next = state_attr(source, 'data') | default([]) %}
-        {{ next[1].LinePublicNumber if next|length > 1 }}
+        {% if next | length < 2 %}
+        {% elif next[1].TripStopStatus.startswith('PASSED')%}
+        {% else %}
+        {{ next[1].LinePublicNumber}}
+        {% endif%}
       lijn_3: >-
         {% set next = state_attr(source, 'data') | default([]) %}
-        {{ next[2].LinePublicNumber if next|length > 2 }}
+        {% if next | length < 3 %}
+        {% elif next[2].TripStopStatus.startswith('PASSED')%}
+        {% else %}
+        {{ next[2].LinePublicNumber}}
+        {% endif%}
 
       bestemming_1: >-
         {% set next = state_attr(source, 'data') | default([]) %}
-        {% if next[0].TripStopStatus.startswith('CANCEL') %}
+        {% if next | length < 1 %}
+        {% elif next[0].TripStopStatus.startswith('CANCEL') %}
           Rit {{ as_datetime(next[0].TargetDepartureTime).strftime('%H:%M') }} vervalt
         {% elif next[0].TripStopStatus.startswith('PASSED')%}
         {% else %}
@@ -154,7 +175,8 @@ sensor:
         {% endif %}
       bestemming_2: >-
         {% set next = state_attr(source, 'data') | default([]) %}
-        {% if next[1].TripStopStatus.startswith('CANCEL') %}
+        {% if next | length < 2 %}
+        {% elif next[1].TripStopStatus.startswith('CANCEL') %}
           Rit {{ as_datetime(next[1].TargetDepartureTime).strftime('%H:%M') }} vervalt
         {% elif next[1].TripStopStatus.startswith('PASSED')%}
         {% else %}
@@ -162,7 +184,8 @@ sensor:
         {% endif %}
       bestemming_3: >-
         {% set next = state_attr(source, 'data') | default([]) %}
-        {% if next[2].TripStopStatus.startswith('CANCEL') %}
+        {% if next | length < 3 %}
+        {% elif next[2].TripStopStatus.startswith('CANCEL') %}
           Rit {{ as_datetime(next[2].TargetDepartureTime).strftime('%H:%M') }} vervalt
         {% elif next[2].TripStopStatus.startswith('PASSED')%}
         {% else %}
