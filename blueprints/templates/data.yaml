@@ -1,8 +1,8 @@
 blueprint:
   name: OVAPI – Helper (template sensor)
   description: >
-    Template sensor that sorts upcoming rides based on
-    a OVAPI REST sensor with a `Passes` attribute.
+    Template sensor die de volgende OV-ritten sorteert op basis van
+    een OVAPI REST sensor met een Passes-attribuut.
   domain: template
   homeassistant:
     min_version: 2025.12.1
@@ -16,15 +16,6 @@ blueprint:
         entity:
           domain: sensor
           multiple: true
-    # TimingPointCode:
-    #   name: Timing Point Code
-    #   description: >
-    #     Een tpc is een locatie en kan bijv. een bushalte zijn. 
-    #     Bushaltes aan weerszijde van de straat hebben een eigen tpc.
-    #     Voor het vinden van de tpc's(Timing Point Code) gebruik:
-    #     https://ovzoeker.nl/
-    #   selector:
-    #     text:
     lijnen:
       name: Lijnen
       description: Lijst met lijnnummer(s) of leeg laten om alle lijnen te tonen.
@@ -40,7 +31,7 @@ variables:
   
 trigger:
   - platform: time_pattern
-    seconds: "/15"
+    seconds: "/10"
   - platform: state
     entity_id: !input source_sensor
 
@@ -64,7 +55,8 @@ sensor:
 
         {{ result
           | selectattr('ExpectedDepartureTime', 'defined')
-          | selectattr('ExpectedDepartureTime', '>', (now() - timedelta(seconds=30)).isoformat())
+          | selectattr('ExpectedDepartureTime', '>', (now() - timedelta(seconds=120)).isoformat())
+          | rejectattr('TripStopStatus', 'search', 'PASSED')
           | sort(attribute='ExpectedDepartureTime')
           | list if ns.passes else []
         }}
