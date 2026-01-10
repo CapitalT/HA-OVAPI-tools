@@ -111,7 +111,7 @@ template:
   # Vaak is dat een afgeleide van de naam maar soms maakt HA er zelf iets van.
   # Controleer dit eerst als de onderstaande sensor niet werkt.
   - use_blueprint:
-      path: ovapi/vertrek.yaml
+      path: ovapi/departures.yaml
       input:
         source_sensor: 'sensor.ovapi_helper_sensor_30005031'
     name: "OVAPI vertrek Damrak"
